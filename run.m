@@ -1,0 +1,38 @@
+clc; 
+close all; 
+clear all;
+%img=imread('Manuscrito.jpg');
+img=imread('Letras.png');
+imshow(img);
+title('Imagen Leida')
+
+img = rgb2gray(img);    %Convertir la imagen a blanco y negro
+threshold = graythresh(img);    %Uso del método de Otsu
+img = ~im2bw(img);  %convierte la imagen en escala de grises a binaria
+img = bwareaopen(img,30);   %Elimina componentes con una dimension menor a 30 pixeles
+palabra = [ ];   %Cadena de texto
+M = img;
+Hoja = fopen('text.txt', 'wt');  %Abrir el archivo de texto para escribir en el
+load templates
+global templates    %Cargar y definir el template global
+num_letras=size(templates,2);
+while 1 %Escribir las letras que se leen
+    [fl M]=lineas(M); %Llamando a la funcion Lineas
+    imgx=fl;
+    [L No] = bwlabel(imgx);    
+    for n=1:No  %Leer la letra de la imagen, y guardarla en la palabra
+        [x,y] = find(L==n);
+        n1=imgx(min(x):max(x),min(y):max(y));  
+        img_re = imresize(n1,[42 24]);
+        letra = leer_letra(img_re,num_letras);
+        palabra = [palabra letra];
+    end
+    fprintf(Hoja,'%s\n',palabra);
+    palabra=[ ];
+    if isempty(M) %Romper en caso de no tener más palabras
+        break
+    end    
+end
+fclose(Hoja); %Cerrar el archivo de texto
+winopen('text.txt'); %Mostrar el archivo de texto con las palabras leidas
+clear all;
